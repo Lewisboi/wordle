@@ -1,124 +1,12 @@
 use colored::{ColoredString, Colorize};
 use std::io::stdin;
 
-enum Word {
-    Full(Vec<SlotState>),
-    Empty(u8),
-}
-
-impl Default for Word {
-    fn default() -> Self {
-        Self::Empty(0)
-    }
-}
-
-impl Word {
-    fn print(&self) {
-        match self {
-            Self::Empty(n) => print!("{}", "#".repeat(*n as usize).to_owned().blue()),
-            Self::Full(v) => {
-                for ss in v {
-                    print!("{}", ss.to_colored_string());
-                }
-            }
-        }
-    }
-}
-
-enum SlotState {
-    NonMatch(char),
-    PartialMatch(char),
-    Match(char),
-}
-
-impl SlotState {
-    fn to_colored_string(&self) -> ColoredString {
-        match self {
-            Self::Match(n) => n.to_string().green(),
-            Self::NonMatch(n) => n.to_string().white(),
-            Self::PartialMatch(n) => n.to_string().yellow(),
-        }
-    }
-}
-
-pub struct Board {
-    words: Vec<Word>,
-}
-
-impl Board {
-    fn new(width: u8, length: u8) -> Self {
-        Self {
-            words: (0..length).map(|_| Word::Empty(width)).collect(),
-        }
-    }
-    fn add_word(&mut self, word: Word, index: usize) {
-        self.words[index] = word;
-    }
-}
-
-impl Board {
-    fn print(&self) {
-        for w in &self.words {
-            print!("{}", "|".blue());
-            w.print();
-            print!("{}", "|\n".blue());
-        }
-    }
-}
-#[derive(Debug)]
-pub struct GameSummary {
-    won: bool,
-}
-
 pub struct Game<P: Player> {
     word: String,
     number_of_attempts: u8,
     attempts_left: u8,
     board: Board,
     player: P,
-}
-
-pub trait Player {
-    fn get_play(&self, board: &Board) -> String;
-}
-
-pub struct HumanPlayer {
-    word_length: u8
-}
-
-impl HumanPlayer {
-    fn validate_input(&self, input: &str) -> bool {
-        input.len() == self.word_length as usize
-    }
-
-    fn get_player_word(&self) -> String {
-        loop {
-            println!("Insert your guess: ");
-            let mut buffer = String::new();
-            match stdin().read_line(&mut buffer) {
-                Ok(_) => {
-                    if !self.validate_input(buffer.trim()) {
-                        println!("{}", "Invalid input, try again".yellow());
-                        continue;
-                    }
-                    break buffer.trim().to_owned();
-                }
-                Err(_) => {
-                    println!(
-                        "{}",
-                        "There was an error while reading the input, try again".red()
-                    );
-                    continue;
-                }
-            }
-        }
-    }
-}
-
-impl Player for HumanPlayer {
-    fn get_play(&self, _: &Board) -> String {
-        self.get_player_word()
-    }
 }
 
 impl<P: Player> Game<P> {
@@ -176,7 +64,120 @@ impl<P: Player> Game<P> {
 
 impl Default for Game<HumanPlayer> {
     fn default() -> Self {
-        Self::new("test".to_owned(), 5, HumanPlayer { word_length: 4})
+        Self::new("test".to_owned(), 5, HumanPlayer { word_length: 4 })
+    }
+}
+
+pub struct Board {
+    words: Vec<Word>,
+}
+
+impl Board {
+    fn new(width: u8, length: u8) -> Self {
+        Self {
+            words: (0..length).map(|_| Word::Empty(width)).collect(),
+        }
+    }
+    fn add_word(&mut self, word: Word, index: usize) {
+        self.words[index] = word;
+    }
+}
+
+impl Board {
+    fn print(&self) {
+        for w in &self.words {
+            print!("{}", "|".blue());
+            w.print();
+            print!("{}", "|\n".blue());
+        }
+    }
+}
+
+enum Word {
+    Full(Vec<SlotState>),
+    Empty(u8),
+}
+
+impl Default for Word {
+    fn default() -> Self {
+        Self::Empty(0)
+    }
+}
+
+impl Word {
+    fn print(&self) {
+        match self {
+            Self::Empty(n) => print!("{}", "#".repeat(*n as usize).to_owned().blue()),
+            Self::Full(v) => {
+                for ss in v {
+                    print!("{}", ss.to_colored_string());
+                }
+            }
+        }
+    }
+}
+
+enum SlotState {
+    NonMatch(char),
+    PartialMatch(char),
+    Match(char),
+}
+
+impl SlotState {
+    fn to_colored_string(&self) -> ColoredString {
+        match self {
+            Self::Match(n) => n.to_string().green(),
+            Self::NonMatch(n) => n.to_string().white(),
+            Self::PartialMatch(n) => n.to_string().yellow(),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct GameSummary {
+    won: bool,
+}
+
+pub trait Player {
+    fn get_play(&self, board: &Board) -> String;
+}
+
+pub struct HumanPlayer {
+    word_length: u8,
+}
+
+impl HumanPlayer {
+    fn validate_input(&self, input: &str) -> bool {
+        input.len() == self.word_length as usize
+    }
+
+    fn get_player_word(&self) -> String {
+        loop {
+            println!("Insert your guess: ");
+            let mut buffer = String::new();
+            match stdin().read_line(&mut buffer) {
+                Ok(_) => {
+                    if !self.validate_input(buffer.trim()) {
+                        println!("{}", "Invalid input, try again".yellow());
+                        continue;
+                    }
+                    break buffer.trim().to_owned();
+                }
+                Err(_) => {
+                    println!(
+                        "{}",
+                        "There was an error while reading the input, try again".red()
+                    );
+                    continue;
+                }
+            }
+        }
+    }
+}
+
+impl Player for HumanPlayer {
+    fn get_play(&self, _: &Board) -> String {
+        self.get_player_word()
     }
 }
 
@@ -191,7 +192,7 @@ mod tests {
 
     #[test]
     fn should_not_validate_greater_length() {
-        let game :Game<HumanPlayer> = Game::default();
+        let game: Game<HumanPlayer> = Game::default();
         assert!(!game.player.validate_input("Hello World"))
     }
 

@@ -1,4 +1,4 @@
-use wordle::wordle_game::game_objects::{Game};
+use wordle::wordle_game::game_objects::Game;
 
 fn main() {
     let mut new_game = Game::default();
